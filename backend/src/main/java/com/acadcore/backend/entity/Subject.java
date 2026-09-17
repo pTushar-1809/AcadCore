@@ -13,6 +13,9 @@ public class Subject {
     @Column(nullable = false)
     private String name;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id", nullable = false)
     private AcademicClass academicClass;
@@ -32,6 +35,16 @@ public class Subject {
         this.academicClass = academicClass;
     }
 
+    public Subject(
+            String name,
+            String description,
+            AcademicClass academicClass) {
+
+        this.name = name;
+        this.description = description;
+        this.academicClass = academicClass;
+    }
+
     public Long getId() {
         return id;
     }
@@ -42,6 +55,14 @@ public class Subject {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public AcademicClass getAcademicClass() {

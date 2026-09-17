@@ -4,6 +4,7 @@ public class SubjectResponse {
 
     private Long id;
     private String name;
+    private String description;
     private Long classId;
     private String className;
     private Long facultyId;
@@ -15,6 +16,7 @@ public class SubjectResponse {
     public SubjectResponse(
             Long id,
             String name,
+            String description,
             Long classId,
             String className,
             Long facultyId,
@@ -22,6 +24,7 @@ public class SubjectResponse {
 
         this.id = id;
         this.name = name;
+        this.description = description;
         this.classId = classId;
         this.className = className;
         this.facultyId = facultyId;
@@ -34,6 +37,10 @@ public class SubjectResponse {
 
     public String getName() {
         return name;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public Long getClassId() {

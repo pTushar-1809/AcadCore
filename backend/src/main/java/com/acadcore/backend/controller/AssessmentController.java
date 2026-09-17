@@ -36,6 +36,10 @@ public class AssessmentController {
         this.userRepository = userRepository;
     }
 
+    // =========================================================
+    // FACULTY - CREATE ASSESSMENT
+    // =========================================================
+
     @PostMapping
     @PreAuthorize("hasRole('FACULTY')")
     public ResponseEntity<?> createAssessment(
@@ -46,10 +50,14 @@ public class AssessmentController {
                 request.getTitle().isBlank()) {
 
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "Title is required"));
+                    .body(Map.of(
+                            "message",
+                            "Title is required"
+                    ));
         }
 
         if (request.getSubjectId() == null) {
+
             return ResponseEntity.badRequest()
                     .body(Map.of(
                             "message",
@@ -78,6 +86,7 @@ public class AssessmentController {
         }
 
         if (request.getType() == null) {
+
             return ResponseEntity.badRequest()
                     .body(Map.of(
                             "message",
@@ -86,10 +95,12 @@ public class AssessmentController {
         }
 
         Subject subject =
-                subjectRepository.findById(request.getSubjectId())
-                        .orElse(null);
+                subjectRepository.findById(
+                        request.getSubjectId()
+                ).orElse(null);
 
         if (subject == null) {
+
             return ResponseEntity.badRequest()
                     .body(Map.of(
                             "message",
@@ -98,7 +109,8 @@ public class AssessmentController {
         }
 
         User faculty =
-                userRepository.findByEmail(authentication.getName())
+                userRepository
+                        .findByEmail(authentication.getName())
                         .orElse(null);
 
         if (faculty == null ||
@@ -111,8 +123,11 @@ public class AssessmentController {
                     ));
         }
 
+        // Faculty can create an assessment
+        // only for their assigned subject.
         if (subject.getFaculty() == null ||
-                !subject.getFaculty().getId()
+                !subject.getFaculty()
+                        .getId()
                         .equals(faculty.getId())) {
 
             return ResponseEntity.status(403)
@@ -124,7 +139,7 @@ public class AssessmentController {
 
         Assessment assessment =
                 new Assessment(
-                        request.getTitle(),
+                        request.getTitle().trim(),
                         request.getDescription(),
                         request.getTotalMarks(),
                         request.getDurationMinutes(),
@@ -141,9 +156,33 @@ public class AssessmentController {
         );
     }
 
+    // =========================================================
+    // ADMIN - GET ALL ASSESSMENTS
+    // =========================================================
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<AssessmentResponse>>
+    getAllAssessments() {
+
+        List<AssessmentResponse> assessments =
+                assessmentRepository
+                        .findAll()
+                        .stream()
+                        .map(this::toResponse)
+                        .toList();
+
+        return ResponseEntity.ok(assessments);
+    }
+
+    // =========================================================
+    // ADMIN / FACULTY - GET ASSESSMENTS BY SUBJECT
+    // =========================================================
+
     @GetMapping("/subject/{subjectId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'FACULTY')")
-    public ResponseEntity<List<AssessmentResponse>> getBySubject(
+    public ResponseEntity<List<AssessmentResponse>>
+    getBySubject(
             @PathVariable Long subjectId) {
 
         List<AssessmentResponse> assessments =
@@ -155,6 +194,71 @@ public class AssessmentController {
 
         return ResponseEntity.ok(assessments);
     }
+
+    // =========================================================
+    // FACULTY - GET OWN ASSESSMENTS
+    // =========================================================
+
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('FACULTY')")
+    public ResponseEntity<List<AssessmentResponse>>
+    getMyAssessments(
+            Authentication authentication) {
+
+        User faculty =
+                userRepository
+                        .findByEmail(authentication.getName())
+                        .orElse(null);
+
+        if (faculty == null) {
+
+            return ResponseEntity.status(403)
+                    .build();
+        }
+
+        List<AssessmentResponse> assessments =
+                assessmentRepository
+                        .findByFacultyId(faculty.getId())
+                        .stream()
+                        .map(this::toResponse)
+                        .toList();
+
+        return ResponseEntity.ok(assessments);
+    }
+
+    // =========================================================
+    // ADMIN - DELETE ASSESSMENT
+    // =========================================================
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteAssessment(
+            @PathVariable Long id) {
+
+        Assessment assessment =
+                assessmentRepository
+                        .findById(id)
+                        .orElse(null);
+
+        if (assessment == null) {
+
+            return ResponseEntity.notFound()
+                    .build();
+        }
+
+        assessmentRepository.delete(assessment);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "message",
+                        "Assessment deleted successfully"
+                )
+        );
+    }
+
+    // =========================================================
+    // RESPONSE MAPPER
+    // =========================================================
 
     private AssessmentResponse toResponse(
             Assessment assessment) {

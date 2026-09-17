@@ -10,16 +10,16 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleException(
-            Exception exception) {
+public ResponseEntity<?> handleException(Exception ex) {
 
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(
-                        Map.of(
-                                "message",
-                                "An unexpected server error occurred"
-                        )
-                );
-    }
+    ex.printStackTrace();
+
+    return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of(
+                    "message", ex.getMessage() != null
+                            ? ex.getMessage()
+                            : "Unexpected server error"
+            ));
+        }
 }

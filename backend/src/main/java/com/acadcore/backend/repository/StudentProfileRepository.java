@@ -1,6 +1,8 @@
 package com.acadcore.backend.repository;
 
+import com.acadcore.backend.entity.Role;
 import com.acadcore.backend.entity.StudentProfile;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -14,4 +16,11 @@ public interface StudentProfileRepository
     List<StudentProfile> findByAcademicClassId(Long classId);
 
     boolean existsByEnrollmentNumber(String enrollmentNumber);
+
+    boolean existsByEnrollmentNumberAndIdNot(
+            String enrollmentNumber,
+            Long id
+    );
+
+    List<StudentProfile> findByUserRole(Role role);
 }

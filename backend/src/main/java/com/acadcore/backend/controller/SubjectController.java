@@ -35,6 +35,7 @@ public class SubjectController {
         this.userRepository = userRepository;
     }
 
+    // CREATE SUBJECT
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createSubject(
@@ -42,8 +43,10 @@ public class SubjectController {
             @RequestBody Map<String, String> request) {
 
         String name = request.get("name");
+        String description = request.get("description");
 
         if (name == null || name.isBlank()) {
+
             return ResponseEntity.badRequest()
                     .body(Map.of(
                             "message",
@@ -71,7 +74,11 @@ public class SubjectController {
         }
 
         Subject subject =
-                new Subject(name, academicClass);
+                new Subject(
+                        name.trim(),
+                        description,
+                        academicClass
+                );
 
         Subject savedSubject =
                 subjectRepository.save(subject);
@@ -81,6 +88,7 @@ public class SubjectController {
         );
     }
 
+    // GET SUBJECTS
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<SubjectResponse>> getSubjects(
@@ -96,6 +104,93 @@ public class SubjectController {
         return ResponseEntity.ok(subjects);
     }
 
+    // UPDATE SUBJECT
+    @PutMapping("/{subjectId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateSubject(
+            @PathVariable Long classId,
+            @PathVariable Long subjectId,
+            @RequestBody Map<String, String> request) {
+
+        Subject subject =
+                subjectRepository.findById(subjectId)
+                        .orElse(null);
+
+        if (subject == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (!subject.getAcademicClass()
+                .getId()
+                .equals(classId)) {
+
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "Subject does not belong to this class"
+                    ));
+        }
+
+        String name = request.get("name");
+        String description = request.get("description");
+
+        if (name == null || name.isBlank()) {
+
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "Subject name is required"
+                    ));
+        }
+
+        subject.setName(name.trim());
+        subject.setDescription(description);
+
+        Subject updatedSubject =
+                subjectRepository.save(subject);
+
+        return ResponseEntity.ok(
+                toResponse(updatedSubject)
+        );
+    }
+
+    // DELETE SUBJECT
+    @DeleteMapping("/{subjectId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteSubject(
+            @PathVariable Long classId,
+            @PathVariable Long subjectId) {
+
+        Subject subject =
+                subjectRepository.findById(subjectId)
+                        .orElse(null);
+
+        if (subject == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (!subject.getAcademicClass()
+                .getId()
+                .equals(classId)) {
+
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "Subject does not belong to this class"
+                    ));
+        }
+
+        subjectRepository.delete(subject);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "message",
+                        "Subject deleted successfully"
+                )
+        );
+    }
+
+    // ASSIGN FACULTY
     @PutMapping("/{subjectId}/faculty")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> assignFaculty(
@@ -111,7 +206,10 @@ public class SubjectController {
             return ResponseEntity.notFound().build();
         }
 
-        if (!subject.getAcademicClass().getId().equals(classId)) {
+        if (!subject.getAcademicClass()
+                .getId()
+                .equals(classId)) {
+
             return ResponseEntity.badRequest()
                     .body(Map.of(
                             "message",
@@ -120,6 +218,7 @@ public class SubjectController {
         }
 
         if (request.getFacultyId() == null) {
+
             return ResponseEntity.badRequest()
                     .body(Map.of(
                             "message",
@@ -132,6 +231,7 @@ public class SubjectController {
                         .orElse(null);
 
         if (faculty == null) {
+
             return ResponseEntity.badRequest()
                     .body(Map.of(
                             "message",
@@ -140,6 +240,7 @@ public class SubjectController {
         }
 
         if (faculty.getRole() != Role.FACULTY) {
+
             return ResponseEntity.badRequest()
                     .body(Map.of(
                             "message",
@@ -157,6 +258,7 @@ public class SubjectController {
         );
     }
 
+    // RESPONSE CONVERTER
     private SubjectResponse toResponse(
             Subject subject) {
 
@@ -164,13 +266,18 @@ public class SubjectController {
         String facultyName = "";
 
         if (subject.getFaculty() != null) {
-            facultyId = subject.getFaculty().getId();
-            facultyName = subject.getFaculty().getFullName();
+
+            facultyId =
+                    subject.getFaculty().getId();
+
+            facultyName =
+                    subject.getFaculty().getFullName();
         }
 
         return new SubjectResponse(
                 subject.getId(),
                 subject.getName(),
+                subject.getDescription(),
                 subject.getAcademicClass().getId(),
                 subject.getAcademicClass().getName(),
                 facultyId,
