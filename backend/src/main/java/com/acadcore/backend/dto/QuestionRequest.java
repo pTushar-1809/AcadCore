@@ -4,8 +4,10 @@ import com.acadcore.backend.entity.QuestionType;
 
 public class QuestionRequest {
 
-    private String questionText;
     private QuestionType type;
+
+    private String questionText;
+
     private Integer marks;
 
     private String optionA;
@@ -13,17 +15,15 @@ public class QuestionRequest {
     private String optionC;
     private String optionD;
 
-    private String correctAnswer;
+    private String correctOption;
+
+    private String programmingLanguage;
+
+    private String starterCode;
+
+    private String expectedAnswer;
 
     public QuestionRequest() {
-    }
-
-    public String getQuestionText() {
-        return questionText;
-    }
-
-    public void setQuestionText(String questionText) {
-        this.questionText = questionText;
     }
 
     public QuestionType getType() {
@@ -32,6 +32,14 @@ public class QuestionRequest {
 
     public void setType(QuestionType type) {
         this.type = type;
+    }
+
+    public String getQuestionText() {
+        return questionText;
+    }
+
+    public void setQuestionText(String questionText) {
+        this.questionText = questionText;
     }
 
     public Integer getMarks() {
@@ -74,11 +82,35 @@ public class QuestionRequest {
         this.optionD = optionD;
     }
 
-    public String getCorrectAnswer() {
-        return correctAnswer;
+    public String getCorrectOption() {
+        return correctOption;
     }
 
-    public void setCorrectAnswer(String correctAnswer) {
-        this.correctAnswer = correctAnswer;
+    public void setCorrectOption(String correctOption) {
+        this.correctOption = correctOption;
+    }
+
+    public String getProgrammingLanguage() {
+        return programmingLanguage;
+    }
+
+    public void setProgrammingLanguage(String programmingLanguage) {
+        this.programmingLanguage = programmingLanguage;
+    }
+
+    public String getStarterCode() {
+        return starterCode;
+    }
+
+    public void setStarterCode(String starterCode) {
+        this.starterCode = starterCode;
+    }
+
+    public String getExpectedAnswer() {
+        return expectedAnswer;
+    }
+
+    public void setExpectedAnswer(String expectedAnswer) {
+        this.expectedAnswer = expectedAnswer;
     }
 }

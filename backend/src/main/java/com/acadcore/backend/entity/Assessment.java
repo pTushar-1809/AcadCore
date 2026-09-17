@@ -34,6 +34,17 @@ public class Assessment {
     @JoinColumn(name = "faculty_id", nullable = false)
     private User faculty;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AssessmentStatus status = AssessmentStatus.DRAFT;
+    public AssessmentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(AssessmentStatus status) {
+        this.status = status;
+    }
+
     public Assessment() {
     }
 

@@ -1,69 +1,49 @@
-package com.acadcore.backend.entity;
+package com.acadcore.backend.dto;
 
-import jakarta.persistence.*;
+import com.acadcore.backend.entity.QuestionType;
 
-@Entity
-@Table(name = "questions")
-public class Question {
+public class QuestionResponse {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "assessment_id", nullable = false)
-    private Assessment assessment;
+    private Long assessmentId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private QuestionType type;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
     private String questionText;
 
-    @Column(nullable = false)
     private Integer marks;
 
-    // MCQ
-    @Column(columnDefinition = "TEXT")
     private String optionA;
-
-    @Column(columnDefinition = "TEXT")
     private String optionB;
-
-    @Column(columnDefinition = "TEXT")
     private String optionC;
-
-    @Column(columnDefinition = "TEXT")
     private String optionD;
 
-    @Column(length = 1)
     private String correctOption;
 
-    // Coding
-    @Column(length = 50)
     private String programmingLanguage;
 
-    @Column(columnDefinition = "TEXT")
     private String starterCode;
 
-    // Brief answer
-    @Column(columnDefinition = "TEXT")
     private String expectedAnswer;
 
-    public Question() {
+    public QuestionResponse() {
     }
 
     public Long getId() {
         return id;
     }
 
-    public Assessment getAssessment() {
-        return assessment;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public void setAssessment(Assessment assessment) {
-        this.assessment = assessment;
+    public Long getAssessmentId() {
+        return assessmentId;
+    }
+
+    public void setAssessmentId(Long assessmentId) {
+        this.assessmentId = assessmentId;
     }
 
     public QuestionType getType() {

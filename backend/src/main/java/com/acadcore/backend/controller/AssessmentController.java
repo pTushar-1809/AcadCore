@@ -3,10 +3,13 @@ package com.acadcore.backend.controller;
 import com.acadcore.backend.dto.AssessmentRequest;
 import com.acadcore.backend.dto.AssessmentResponse;
 import com.acadcore.backend.entity.Assessment;
+import com.acadcore.backend.entity.AssessmentStatus;
+import com.acadcore.backend.entity.Question;
 import com.acadcore.backend.entity.Role;
 import com.acadcore.backend.entity.Subject;
 import com.acadcore.backend.entity.User;
 import com.acadcore.backend.repository.AssessmentRepository;
+import com.acadcore.backend.repository.QuestionRepository;
 import com.acadcore.backend.repository.SubjectRepository;
 import com.acadcore.backend.repository.UserRepository;
 
@@ -25,15 +28,18 @@ public class AssessmentController {
     private final AssessmentRepository assessmentRepository;
     private final SubjectRepository subjectRepository;
     private final UserRepository userRepository;
+    private final QuestionRepository questionRepository;
 
     public AssessmentController(
             AssessmentRepository assessmentRepository,
             SubjectRepository subjectRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            QuestionRepository questionRepository) {
 
         this.assessmentRepository = assessmentRepository;
         this.subjectRepository = subjectRepository;
         this.userRepository = userRepository;
+        this.questionRepository = questionRepository;
     }
 
     // =========================================================
@@ -123,7 +129,7 @@ public class AssessmentController {
                     ));
         }
 
-        // Faculty can create an assessment
+        // Faculty can create assessment
         // only for their assigned subject.
         if (subject.getFaculty() == null ||
                 !subject.getFaculty()
@@ -147,6 +153,11 @@ public class AssessmentController {
                         subject,
                         faculty
                 );
+
+        // Every new assessment starts as DRAFT.
+        assessment.setStatus(
+                AssessmentStatus.DRAFT
+        );
 
         Assessment saved =
                 assessmentRepository.save(assessment);
@@ -211,9 +222,7 @@ public class AssessmentController {
                         .orElse(null);
 
         if (faculty == null) {
-
-            return ResponseEntity.status(403)
-                    .build();
+            return ResponseEntity.status(403).build();
         }
 
         List<AssessmentResponse> assessments =
@@ -224,6 +233,151 @@ public class AssessmentController {
                         .toList();
 
         return ResponseEntity.ok(assessments);
+    }
+
+    // =========================================================
+    // FACULTY - PUBLISH ASSESSMENT
+    // =========================================================
+
+    @PostMapping("/{assessmentId}/publish")
+    @PreAuthorize("hasRole('FACULTY')")
+    public ResponseEntity<?> publishAssessment(
+            @PathVariable Long assessmentId,
+            Authentication authentication) {
+
+        Assessment assessment =
+                assessmentRepository
+                        .findById(assessmentId)
+                        .orElse(null);
+
+        if (assessment == null) {
+
+            return ResponseEntity.notFound()
+                    .build();
+        }
+
+        // -----------------------------------------------------
+        // CHECK FACULTY OWNERSHIP
+        // -----------------------------------------------------
+
+        String loggedInEmail =
+                authentication.getName();
+
+        if (assessment.getFaculty() == null ||
+                !assessment.getFaculty()
+                        .getEmail()
+                        .equalsIgnoreCase(loggedInEmail)) {
+
+            return ResponseEntity.status(403)
+                    .body(Map.of(
+                            "message",
+                            "You are not allowed to publish this assessment"
+                    ));
+        }
+
+        // -----------------------------------------------------
+        // CHECK STATUS
+        // -----------------------------------------------------
+
+        if (assessment.getStatus() ==
+                AssessmentStatus.PUBLISHED) {
+
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "Assessment is already published"
+                    ));
+        }
+
+        if (assessment.getStatus() ==
+                AssessmentStatus.CLOSED) {
+
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "Closed assessment cannot be published"
+                    ));
+        }
+
+        // -----------------------------------------------------
+        // GET QUESTIONS
+        // -----------------------------------------------------
+
+        List<Question> questions =
+                questionRepository
+                        .findByAssessmentIdOrderByIdAsc(
+                                assessmentId
+                        );
+
+        // -----------------------------------------------------
+        // AT LEAST ONE QUESTION
+        // -----------------------------------------------------
+
+        if (questions.isEmpty()) {
+
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "Add at least one question before publishing"
+                    ));
+        }
+
+        // -----------------------------------------------------
+        // CALCULATE QUESTION MARKS
+        // -----------------------------------------------------
+
+        int questionMarks =
+                questions.stream()
+                        .mapToInt(Question::getMarks)
+                        .sum();
+
+        // -----------------------------------------------------
+        // QUESTION MARKS MUST MATCH TOTAL MARKS
+        // -----------------------------------------------------
+
+        if (questionMarks !=
+                assessment.getTotalMarks()) {
+
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "Question marks (" +
+                                    questionMarks +
+                                    ") must equal assessment total marks (" +
+                                    assessment.getTotalMarks() +
+                                    ")"
+                    ));
+        }
+
+        // -----------------------------------------------------
+        // PUBLISH
+        // -----------------------------------------------------
+
+        assessment.setStatus(
+                AssessmentStatus.PUBLISHED
+        );
+
+        Assessment saved =
+                assessmentRepository.save(assessment);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "message",
+                        "Assessment published successfully",
+
+                        "assessmentId",
+                        saved.getId(),
+
+                        "status",
+                        saved.getStatus().name(),
+
+                        "totalMarks",
+                        saved.getTotalMarks(),
+
+                        "questionMarks",
+                        questionMarks
+                )
+        );
     }
 
     // =========================================================
@@ -263,19 +417,23 @@ public class AssessmentController {
     private AssessmentResponse toResponse(
             Assessment assessment) {
 
-        return new AssessmentResponse(
-                assessment.getId(),
-                assessment.getTitle(),
-                assessment.getDescription() == null
-                        ? ""
-                        : assessment.getDescription(),
-                assessment.getTotalMarks(),
-                assessment.getDurationMinutes(),
-                assessment.getType().name(),
-                assessment.getSubject().getId(),
-                assessment.getSubject().getName(),
-                assessment.getFaculty().getId(),
-                assessment.getFaculty().getFullName()
-        );
+        AssessmentResponse response =
+                new AssessmentResponse(
+                        assessment.getId(),
+                        assessment.getTitle(),
+                        assessment.getDescription() == null
+                                ? ""
+                                : assessment.getDescription(),
+                        assessment.getTotalMarks(),
+                        assessment.getDurationMinutes(),
+                        assessment.getType().name(),
+                        assessment.getSubject().getId(),
+                        assessment.getSubject().getName(),
+                        assessment.getFaculty().getId(),
+                        assessment.getFaculty().getFullName(),
+                        assessment.getStatus()
+                );
+
+        return response;
     }
 }

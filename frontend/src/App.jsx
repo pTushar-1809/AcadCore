@@ -1,139 +1,135 @@
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
 
+import { AuthProvider } from "./context/AuthContext";
+
+// Auth
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
+import AcceptInvitation from "./pages/AcceptInvitation";
+
+// Admin
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLayout from "./layouts/AdminLayout";
 import Classes from "./pages/Classes";
 import Subjects from "./pages/Subjects";
 import Faculty from "./pages/Faculty";
 import Students from "./pages/Students";
-import AcceptInvitation from "./pages/AcceptInvitation";
-import AdminLayout from "./components/AdminLayout";
 import Assessments from "./pages/Assessments";
 
-function ProtectedRoute({ children }) {
-  const { user } = useAuth();
+// Faculty
+import FacultyLayout from "./layouts/FacultyLayout";
+import Dashboard from "./pages/Dashboard";
+import FacultySubjects from "./pages/FacultySubjects";
+import FacultyAssessments from "./pages/FacultyAssessments";
+import QuestionBuilder from "./pages/QuestionBuilder";
 
-  return user ? children : <Navigate to="/login" />;
-}
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
 
-function AppRoutes() {
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
+function App() {
   return (
-    <Routes>
-      {/* Default */}
-      <Route path="/" element={<Navigate to="/login" />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
 
-      {/* Authentication */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+          {/* AUTH */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/accept-invitation"
+            element={<AcceptInvitation />}
+          />
 
-      {/* =====================================================
-          ADMIN DASHBOARD
-          AdminDashboard already has its own dashboard layout,
-          so keep it separate.
-          ===================================================== */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
+          {/* ADMIN DASHBOARD */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
 
-      {/* =====================================================
-          ADMIN INNER PAGES
-          AdminLayout provides ONE sidebar + ONE topbar.
-          ===================================================== */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="classes" element={<Classes />} />
+          {/* ADMIN PAGES */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="classes" element={<Classes />} />
+            <Route path="subjects" element={<Subjects />} />
+            <Route path="faculty" element={<Faculty />} />
+            <Route path="students" element={<Students />} />
+            <Route path="assessments" element={<Assessments />} />
+          </Route>
 
-        <Route path="subjects" element={<Subjects />} />
+          {/* FACULTY */}
+          <Route
+            path="/faculty"
+            element={
+              <ProtectedRoute>
+                <FacultyLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
 
-        <Route path="faculty" element={<Faculty />} />
+            <Route
+              path="subjects"
+              element={<FacultySubjects />}
+            />
 
-        <Route path="students" element={<Students />} />
+            <Route
+              path="assessments"
+              element={<FacultyAssessments />}
+            />
 
-        <Route path="assessments" element={<Assessments />} />          
+            <Route
+              path="assessments/:assessmentId/questions"
+              element={<QuestionBuilder />}
+            />
 
-        <Route
-          path="assessments"
-          element={
-            <div className="dashboard-content">
-              <div className="page-heading">
-                <div>
-                  <h1>Assessments</h1>
-                  <p>
-                    Create and manage academic assessments.
-                  </p>
-                </div>
-              </div>
+            <Route
+              path="students"
+              element={
+                <div>Faculty Students</div>
+              }
+            />
 
-              <div className="empty-page">
-                <h3>Assessment Management</h3>
-                <p>
-                  Assessment management will be added next.
-                </p>
-              </div>
-            </div>
-          }
-        />
-      </Route>
+            <Route
+              path="results"
+              element={
+                <div>Faculty Results</div>
+              }
+            />
+          </Route>
 
-      {/* =====================================================
-          FACULTY
-          ===================================================== */}
-      <Route
-        path="/faculty"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
+          {/* DEFAULT */}
+          <Route
+            path="/"
+            element={<Navigate to="/login" replace />}
+          />
 
-      {/* =====================================================
-          STUDENT
-          ===================================================== */}
-      <Route
-        path="/student"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
+          <Route
+            path="*"
+            element={<Navigate to="/login" replace />}
+          />
 
-      {/* =====================================================
-          FACULTY INVITATION ACCEPTANCE
-          Public route
-          ===================================================== */}
-      <Route
-        path="/faculty/accept"
-        element={<AcceptInvitation />}
-      />
-
-      {/* Unknown route */}
-      <Route path="*" element={<Navigate to="/login" />} />
-    </Routes>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}
+export default App;

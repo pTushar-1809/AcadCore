@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.acadcore.backend.entity.AssessmentStatus;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -55,6 +56,13 @@ public class AttemptController {
         if (assessment == null) {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", "Assessment not found"));
+        }
+        if (assessment.getStatus() != AssessmentStatus.PUBLISHED) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "This assessment is not available for students"
+                    ));
         }
 
         User student =
@@ -129,10 +137,10 @@ public class AttemptController {
              * for future/manual evaluation.
              */
             if (question.getType() == QuestionType.MCQ
-                    && question.getCorrectAnswer() != null
+                    && question.getCorrectOption() != null
                     && answer != null
                     && answer.trim().equalsIgnoreCase(
-                            question.getCorrectAnswer().trim())) {
+                            question.getCorrectOption().trim())) {
 
                 marksObtained = question.getMarks();
             }
