@@ -4,6 +4,7 @@ import {
   BookOpen,
   Calendar,
   Trash2,
+  Copy,
 } from "lucide-react";
 
 import api from "../services/api";
@@ -210,6 +211,40 @@ export default function Classes() {
 
               </div>
 
+<div className="join-code-box">
+
+  <div>
+    <small>
+      Student Join Code
+    </small>
+
+    <strong>
+      {academicClass.joinCode || "Generating..."}
+    </strong>
+  </div>
+
+  {academicClass.joinCode && (
+    <button
+      type="button"
+      title="Copy join code"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(
+            academicClass.joinCode
+          );
+        } catch (err) {
+          console.error(
+            "Copy join code error:",
+            err
+          );
+        }
+      }}
+    >
+      <Copy size={16} />
+    </button>
+  )}
+
+</div>
               <div className="class-footer">
 
                 <span>

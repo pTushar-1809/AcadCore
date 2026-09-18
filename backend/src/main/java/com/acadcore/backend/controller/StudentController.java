@@ -204,6 +204,179 @@ public class StudentController {
     }
 
     // ============================================================
+// JOIN CLASS USING JOIN CODE
+// ============================================================
+
+@PostMapping("/join-class")
+@PreAuthorize("hasRole('STUDENT')")
+@Transactional
+public ResponseEntity<?> joinClass(
+        @RequestBody com.acadcore.backend.dto.JoinClassRequest request,
+        Authentication authentication) {
+
+    // --------------------------------------------------------
+    // Validate request
+    // --------------------------------------------------------
+
+    if (request == null ||
+            request.getJoinCode() == null ||
+            request.getJoinCode().isBlank()) {
+
+        return ResponseEntity.badRequest()
+                .body(Map.of(
+                        "message",
+                        "Class join code is required"
+                ));
+    }
+
+    String joinCode =
+            request.getJoinCode()
+                    .trim()
+                    .toUpperCase();
+
+    // --------------------------------------------------------
+    // Find logged-in student
+    // --------------------------------------------------------
+
+    User student =
+            userRepository
+                    .findByEmail(authentication.getName())
+                    .orElse(null);
+
+    if (student == null) {
+
+        return ResponseEntity.status(404)
+                .body(Map.of(
+                        "message",
+                        "Student not found"
+                ));
+    }
+
+    // --------------------------------------------------------
+    // Find class using join code
+    // --------------------------------------------------------
+
+    AcademicClass academicClass =
+            classRepository
+                    .findByJoinCodeIgnoreCase(joinCode)
+                    .orElse(null);
+
+    if (academicClass == null) {
+
+        return ResponseEntity.badRequest()
+                .body(Map.of(
+                        "message",
+                        "Invalid class join code"
+                ));
+    }
+
+    // --------------------------------------------------------
+    // Find existing student profile
+    // --------------------------------------------------------
+
+    StudentProfile profile =
+            studentProfileRepository
+                    .findByUserId(student.getId())
+                    .orElse(null);
+
+    // --------------------------------------------------------
+    // Student registered publicly
+    // but does not have a profile yet
+    // --------------------------------------------------------
+
+    if (profile == null) {
+
+        profile = new StudentProfile(
+                student,
+                null,
+                null,
+                academicClass
+        );
+
+    } else {
+
+        // ----------------------------------------------------
+        // Already joined this class
+        // ----------------------------------------------------
+
+        if (profile.getAcademicClass() != null &&
+                profile.getAcademicClass()
+                        .getId()
+                        .equals(academicClass.getId())) {
+
+            return ResponseEntity.ok(
+                    Map.of(
+                            "message",
+                            "You are already a member of this class",
+
+                            "studentId",
+                            student.getId(),
+
+                            "fullName",
+                            student.getFullName(),
+
+                            "classId",
+                            academicClass.getId(),
+
+                            "className",
+                            academicClass.getName(),
+
+                            "academicYear",
+                            academicClass.getAcademicYear()
+                    )
+            );
+        }
+
+        // ----------------------------------------------------
+        // Assign class
+        // ----------------------------------------------------
+
+        profile.setAcademicClass(
+                academicClass
+        );
+    }
+
+    // --------------------------------------------------------
+    // Save student profile
+    // --------------------------------------------------------
+
+    StudentProfile savedProfile =
+            studentProfileRepository.save(profile);
+
+    // --------------------------------------------------------
+    // Response
+    // --------------------------------------------------------
+
+    return ResponseEntity.ok(
+            Map.of(
+                    "message",
+                    "Class joined successfully",
+
+                    "studentId",
+                    student.getId(),
+
+                    "fullName",
+                    student.getFullName(),
+
+                    "classId",
+                    savedProfile
+                            .getAcademicClass()
+                            .getId(),
+
+                    "className",
+                    savedProfile
+                            .getAcademicClass()
+                            .getName(),
+
+                    "academicYear",
+                    savedProfile
+                            .getAcademicClass()
+                            .getAcademicYear()
+            )
+    );
+}
+
+    // ============================================================
     // GET STUDENTS BY CLASS
     // ============================================================
 
@@ -391,22 +564,24 @@ public class StudentController {
         // Enrollment duplicate check
         // --------------------------------------------------------
 
-        if (!profile.getEnrollmentNumber()
-                .equalsIgnoreCase(enrollmentNumber)
-                &&
-                studentProfileRepository
-                        .existsByEnrollmentNumberAndIdNot(
-                                enrollmentNumber,
-                                profile.getId()
-                        )) {
+        String existingEnrollment =
+        profile.getEnrollmentNumber();
 
-            return ResponseEntity.badRequest()
-                    .body(Map.of(
-                            "message",
-                            "Enrollment number already exists"
-                    ));
-        }
+if ((existingEnrollment == null ||
+        !existingEnrollment.equalsIgnoreCase(enrollmentNumber))
+        &&
+        studentProfileRepository
+                .existsByEnrollmentNumberAndIdNot(
+                        enrollmentNumber,
+                        profile.getId()
+                )) {
 
+    return ResponseEntity.badRequest()
+            .body(Map.of(
+                    "message",
+                    "Enrollment number already exists"
+            ));
+}
         // --------------------------------------------------------
         // Class
         // --------------------------------------------------------

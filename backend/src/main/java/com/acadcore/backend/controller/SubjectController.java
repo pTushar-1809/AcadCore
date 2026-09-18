@@ -35,7 +35,10 @@ public class SubjectController {
         this.userRepository = userRepository;
     }
 
+    // ============================================================
     // CREATE SUBJECT
+    // ============================================================
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createSubject(
@@ -88,7 +91,10 @@ public class SubjectController {
         );
     }
 
+    // ============================================================
     // GET SUBJECTS
+    // ============================================================
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<SubjectResponse>> getSubjects(
@@ -104,7 +110,10 @@ public class SubjectController {
         return ResponseEntity.ok(subjects);
     }
 
+    // ============================================================
     // UPDATE SUBJECT
+    // ============================================================
+
     @PutMapping("/{subjectId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateSubject(
@@ -154,7 +163,10 @@ public class SubjectController {
         );
     }
 
+    // ============================================================
     // DELETE SUBJECT
+    // ============================================================
+
     @DeleteMapping("/{subjectId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteSubject(
@@ -190,7 +202,10 @@ public class SubjectController {
         );
     }
 
+    // ============================================================
     // ASSIGN FACULTY
+    // ============================================================
+
     @PutMapping("/{subjectId}/faculty")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> assignFaculty(
@@ -258,7 +273,10 @@ public class SubjectController {
         );
     }
 
+    // ============================================================
     // RESPONSE CONVERTER
+    // ============================================================
+
     private SubjectResponse toResponse(
             Subject subject) {
 

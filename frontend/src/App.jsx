@@ -1,14 +1,25 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
 
-// Auth
+// ============================================================
+// AUTH
+// ============================================================
+
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AcceptInvitation from "./pages/AcceptInvitation";
 
-// Admin
+// ============================================================
+// ADMIN
+// ============================================================
+
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLayout from "./layouts/AdminLayout";
 import Classes from "./pages/Classes";
@@ -17,12 +28,25 @@ import Faculty from "./pages/Faculty";
 import Students from "./pages/Students";
 import Assessments from "./pages/Assessments";
 
-// Faculty
+// ============================================================
+// FACULTY
+// ============================================================
+
 import FacultyLayout from "./layouts/FacultyLayout";
 import Dashboard from "./pages/Dashboard";
 import FacultySubjects from "./pages/FacultySubjects";
 import FacultyAssessments from "./pages/FacultyAssessments";
 import QuestionBuilder from "./pages/QuestionBuilder";
+
+// ============================================================
+// STUDENT
+// ============================================================
+
+import StudentJoinClass from "./pages/StudentJoinClass";
+
+// ============================================================
+// PROTECTED ROUTE
+// ============================================================
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
@@ -34,21 +58,40 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// ============================================================
+// APP
+// ============================================================
+
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
 
-          {/* AUTH */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* ==================================================
+              AUTH
+              ================================================== */}
+
+          <Route
+            path="/login"
+            element={<Login />}
+          />
+
+          <Route
+            path="/register"
+            element={<Register />}
+          />
+
           <Route
             path="/accept-invitation"
             element={<AcceptInvitation />}
           />
 
-          {/* ADMIN DASHBOARD */}
+
+          {/* ==================================================
+              ADMIN DASHBOARD
+              ================================================== */}
+
           <Route
             path="/admin"
             element={
@@ -58,7 +101,11 @@ function App() {
             }
           />
 
-          {/* ADMIN PAGES */}
+
+          {/* ==================================================
+              ADMIN PAGES
+              ================================================== */}
+
           <Route
             path="/admin"
             element={
@@ -67,14 +114,39 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="classes" element={<Classes />} />
-            <Route path="subjects" element={<Subjects />} />
-            <Route path="faculty" element={<Faculty />} />
-            <Route path="students" element={<Students />} />
-            <Route path="assessments" element={<Assessments />} />
+
+            <Route
+              path="classes"
+              element={<Classes />}
+            />
+
+            <Route
+              path="subjects"
+              element={<Subjects />}
+            />
+
+            <Route
+              path="faculty"
+              element={<Faculty />}
+            />
+
+            <Route
+              path="students"
+              element={<Students />}
+            />
+
+            <Route
+              path="assessments"
+              element={<Assessments />}
+            />
+
           </Route>
 
-          {/* FACULTY */}
+
+          {/* ==================================================
+              FACULTY
+              ================================================== */}
+
           <Route
             path="/faculty"
             element={
@@ -83,7 +155,11 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Dashboard />} />
+
+            <Route
+              index
+              element={<Dashboard />}
+            />
 
             <Route
               path="subjects"
@@ -113,17 +189,55 @@ function App() {
                 <div>Faculty Results</div>
               }
             />
+
           </Route>
 
-          {/* DEFAULT */}
+
+          {/* ==================================================
+              STUDENT
+              ================================================== */}
+
+          <Route
+            path="/student"
+            element={
+              <ProtectedRoute>
+                <StudentJoinClass />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/student/join-class"
+            element={
+              <ProtectedRoute>
+                <StudentJoinClass />
+              </ProtectedRoute>
+            }
+          />
+
+
+          {/* ==================================================
+              DEFAULT
+              ================================================== */}
+
           <Route
             path="/"
-            element={<Navigate to="/login" replace />}
+            element={
+              <Navigate
+                to="/login"
+                replace
+              />
+            }
           />
 
           <Route
             path="*"
-            element={<Navigate to="/login" replace />}
+            element={
+              <Navigate
+                to="/login"
+                replace
+              />
+            }
           />
 
         </Routes>

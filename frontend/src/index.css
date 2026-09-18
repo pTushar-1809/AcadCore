@@ -3133,3 +3133,73 @@ input {
 .question-delete:hover {
   background: #f1f5f9;
 }
+
+/* =========================================================
+   STUDENT CLASS JOIN CODE
+   ========================================================= */
+
+.join-code-box {
+  margin-top: 18px;
+  padding: 12px 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 12px;
+}
+
+.join-code-box > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.join-code-box small {
+  font-size: 10px;
+
+  font-weight: 600;
+
+  color: #64748b;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.06em;
+}
+
+.join-code-box strong {
+  font-size: 17px;
+
+  color: #111827;
+
+  letter-spacing: 2px;
+}
+
+.join-code-box button {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #dbe3ec;
+
+  border-radius: 8px;
+
+  background: white;
+
+  color: #475569;
+
+  cursor: pointer;
+}
+
+.join-code-box button:hover {
+  background: #f1f5f9;
+}

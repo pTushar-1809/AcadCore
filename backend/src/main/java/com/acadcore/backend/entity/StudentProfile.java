@@ -11,17 +11,24 @@ public class StudentProfile {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            unique = true
+    )
     private User user;
 
-    @Column(nullable = false)
+    @Column
     private String enrollmentNumber;
 
     @Column
     private String phone;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_id", nullable = false)
+    @JoinColumn(
+            name = "class_id",
+            nullable = false
+    )
     private AcademicClass academicClass;
 
     public StudentProfile() {
@@ -55,7 +62,9 @@ public class StudentProfile {
         return enrollmentNumber;
     }
 
-    public void setEnrollmentNumber(String enrollmentNumber) {
+    public void setEnrollmentNumber(
+            String enrollmentNumber) {
+
         this.enrollmentNumber = enrollmentNumber;
     }
 
@@ -71,7 +80,9 @@ public class StudentProfile {
         return academicClass;
     }
 
-    public void setAcademicClass(AcademicClass academicClass) {
+    public void setAcademicClass(
+            AcademicClass academicClass) {
+
         this.academicClass = academicClass;
     }
 }
